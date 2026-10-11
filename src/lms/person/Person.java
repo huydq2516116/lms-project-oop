@@ -1,22 +1,22 @@
 package lms.person;
 
 public abstract class Person {
-	private static int currentId = 0;
-	private int id;
+	private final int id;
 	private String userName;
 	private String password;
 	private String name;
 	private String address;
 	private String phoneNo;
 	
-	public Person(String userName, String password, String name, String address, String phoneNo) {
-		this.id = currentId++;
+	public Person(int id, String userName, String password, String name, String address, String phoneNo) {
+		this.id = id;
 		this.userName = userName;
 		this.name = name;
 		this.password = password;
 		this.address = address;
 		this.phoneNo = phoneNo;
 	}
+
 	public String getUserName() {
 		return userName;
 	}

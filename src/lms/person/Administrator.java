@@ -4,9 +4,8 @@ public class Administrator extends Person {
 
 
 	
-	public Administrator(String userName, String password, String name, String address, String phoneNo) {
-		super(userName, password, name, address, phoneNo);
-		// TODO Auto-generated constructor stub
+	public Administrator(int id, String userName, String password, String name, String address, String phoneNo) {
+		super(id, userName, password, name, address, phoneNo);
 	}
 	public void addClerk() {
 		

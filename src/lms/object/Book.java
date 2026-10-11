@@ -1,16 +1,15 @@
 package lms.object;
 
 public class Book {
-	private static int currentBookId = 0;
-	private int bookId;
+	private final int bookId;
 	private String title;
 	private String author;
 	private String subject;
 	private boolean isIssued;
 	
-	public Book(String title, String author, String subject, boolean isIssued) {
+	public Book(int bookId, String title, String author, String subject, boolean isIssued) {
 		super();
-		this.bookId = currentBookId++;
+		this.bookId = bookId;
 		this.title = title;
 		this.author = author;
 		this.subject = subject;
