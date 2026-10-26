@@ -11,57 +11,82 @@ public class DatabaseOperations {
     private static final String USER = "postgres";
     private static final String PASSWORD = "27062007";
 
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
-    }
+    public static void createPerson(String username, String password, String name, String address,
+            String phoneno, String role) throws SQLException {
 
-    public static void createPerson(Connection conn, String username, String password, String name, String address,
-            String phoneno, String role) {
         String sql = "INSERT INTO persons (id, user_name, password, name, address, phone_no, role) VALUES (?, ?, ? , ? , ? , ?, ?)";
-        int personCount = readTableRowCount(conn, "persons");
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, personCount);
-            pstmt.setString(2, username);
-            pstmt.setString(3, password);
-            pstmt.setString(4, name);
-            pstmt.setString(5, address);
-            pstmt.setString(6, phoneno);
-            pstmt.setString(7, role);
-            int rowsInserted = pstmt.executeUpdate();
-            if (rowsInserted > 0) {
-                System.out.println("-> [CREATE] Thêm người dùng thành công!");
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            int personCount = readTableRowCount(conn, "persons");
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, personCount);
+                pstmt.setString(2, username);
+                pstmt.setString(3, password);
+                pstmt.setString(4, name);
+                pstmt.setString(5, address);
+                pstmt.setString(6, phoneno);
+                pstmt.setString(7, role);
+                int rowsInserted = pstmt.executeUpdate();
+                if (rowsInserted > 0) {
+                    System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                }
+            } catch (SQLException e) {
+                System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
             }
-        } catch (SQLException e) {
-            System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
         }
+
     }
 
-    public static void createPerson(Connection conn, String username, String password, String name, String address,
-            String phoneno, String role, double salary) {
+    public static void createPerson(String username, String password, String name, String address,
+            String phoneno, String role, double salary) throws SQLException {
         String sql = "INSERT INTO persons (id, user_name, password, name, address, phone_no, role) VALUES (?, ?, ? , ? , ? , ?, ?)";
-        int personCount = readTableRowCount(conn, "persons");
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, personCount);
-            pstmt.setString(2, username);
-            pstmt.setString(3, password);
-            pstmt.setString(4, name);
-            pstmt.setString(5, address);
-            pstmt.setString(6, phoneno);
-            pstmt.setString(7, role);
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            int personCount = readTableRowCount(conn, "persons");
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, personCount);
+                pstmt.setString(2, username);
+                pstmt.setString(3, password);
+                pstmt.setString(4, name);
+                pstmt.setString(5, address);
+                pstmt.setString(6, phoneno);
+                pstmt.setString(7, role);
 
-            if (role.equals("clerk")) createClerk(conn, personCount, salary);
-            else if (role.equals("librarians")) createLibrarian(conn, personCount, salary);
-            int rowsInserted = pstmt.executeUpdate();
-            if (rowsInserted > 0) {
-                System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                if (role.equals("clerk"))
+                    createClerk(conn, personCount, salary);
+                else if (role.equals("librarians"))
+                    createLibrarian(conn, personCount, salary);
+                int rowsInserted = pstmt.executeUpdate();
+                if (rowsInserted > 0) {
+                    System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                }
+
+            } catch (SQLException e) {
+                System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
             }
-            
-        } catch (SQLException e) {
-            System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
         }
+
     }
 
-    private static void createClerk(Connection conn, int id, double salary){
+    public static String findPasswordByUserName(String personName) throws SQLException {
+        String sql = "SELECT password FROM persons WHERE user_name = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, personName);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        return rs.getString("password");
+                    }
+                    return null;
+                }
+            } catch (SQLException e) {
+                System.err.println("Error searching for user: " + e.getMessage());
+            }
+        }
+
+        return null;
+    }
+
+    private static void createClerk(Connection conn, int id, double salary) {
         String sql = "INSERT INTO clerks (id, salary, desk_no) VALUES (?, ?, ?)";
         int clerkCount = readTableRowCount(conn, "clerks");
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -77,9 +102,10 @@ public class DatabaseOperations {
         }
     }
 
-    private static void createLibrarian(Connection conn, int id, double salary){
+    private static void createLibrarian(Connection conn, int id, double salary) {
         String sql = "INSERT INTO librarians (id, salary, desk_no) VALUES (?, ?, ?)";
         int librarianCount = readTableRowCount(conn, "librarians");
+
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.setDouble(2, salary);
@@ -110,21 +136,4 @@ public class DatabaseOperations {
         return count;
     }
 
-    public static String findPasswordByUserName(Connection conn, String personName) {
-        String sql = "SELECT password FROM persons WHERE user_name = ?";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, personName);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    return rs.getString("password");    
-                }
-                return null;
-            }
-        } catch (SQLException e) {
-            System.err.println("Error searching for user: " + e.getMessage());
-        }
-        return null;
-    }
 }

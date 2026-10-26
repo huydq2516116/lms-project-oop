@@ -61,7 +61,7 @@ public class LoginScreen extends JFrame {
 		String realPassword;
 
 		try {
-			realPassword = DatabaseOperations.findPasswordByUserName(DatabaseOperations.getConnection(), username);
+			realPassword = DatabaseOperations.findPasswordByUserName(username);
 			if (password.equals(realPassword)) {
 				loginResult.setText("Login successful!");
 			}
