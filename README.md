@@ -34,20 +34,20 @@ borrowed.
 * ❏ View All Books in Library.
 
 ## lms plan
-- lms.database: 
+### lms.database: 
 + static DatabaseOperations: only class that contains all the CRUD method that connects to the database
 
-- lms.object:
+### lms.object:
 + Book: Manages its own inventory state. When a book is checked out, lost, or removed, it updates its status and synchronizes the change to the database.
 + HoldRequest: Tracks active reservation queues. It can verify expiration windows, cancel itself, or transition into a loan when fulfilled.
 + Loan: Handles circulation math. It computes late fines based on due dates, handles renewal requests, and coordinates closing out a transaction when a book is returned.
 + Only use methods from DatabaseOperations
 
-- lms.person:
+### lms.person:
 + Borrower: Executes cardholder actions. A borrower can place hold requests on books, initiate checkouts, check their active loan list, and pay off accumulated fines.
 + Staff (Librarian, Clerk): Executes operational privileges. Staff members can register new library users, add/remove books from the catalog, process returns, handle fine overrides.
 
-- lms.screen:
+### lms.screen:
 + LoginScreen: Authenticates user credentials, determines user roles, and routes the session to the correct dashboard.
 + BorrowerScreen: Renders search results, active loans, and hold lists. It displays data retrieved from Borrower/Book objects and triggers instance methods when users click buttons (e.g., clicking "Hold" calls borrower.placeHold(...)).
 + ClerkScreen / LibrarianScreen / AdministratorScreen: Render management dashboards. They gather form inputs from staff and pass them to Staff methods to handle inventory, user registration, and administrative workflows without touching database code directly.
