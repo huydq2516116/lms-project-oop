@@ -96,7 +96,7 @@ public class DatabaseOperations {
                 pstmt.setDate(1, Date.valueOf(LocalDate.now()));
                 pstmt.setInt(2, book_id);
                 pstmt.setInt(3, borrower_id);
-                pstmt.setInt(4, book_id);
+                pstmt.setInt(4, issuer_id);
 
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
@@ -123,15 +123,15 @@ public class DatabaseOperations {
         }
     }
 
-    public static String findPasswordByUserName(String personName) throws SQLException {
-        String sql = "SELECT password FROM persons WHERE user_name = ?";
+    public static PasswordRole getPasswordByUserName(String personName) throws SQLException {
+        String sql = "SELECT password, role FROM persons WHERE user_name = ?";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, personName);
 
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
-                        return rs.getString("password");
+                        return new PasswordRole(rs.getString("password"), rs.getString("role"));
                     }
                     return null;
                 }
@@ -173,6 +173,126 @@ public class DatabaseOperations {
         return loans;
     }
 
+    // Search for items by title
+    public static ArrayList<Book> getBooksByTitle(String title) throws SQLException {
+        String sql = "SELECT * FROM books WHERE title LIKE ?";
+        var books = new ArrayList<Book>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, "%" + title + "%");
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        books.add(new Book(rs.getInt(1), rs.getString(2), rs.getString(3),
+                                rs.getString(4), rs.getBoolean(5)));
+                    }
+                }
+            }
+        }
+        return books;
+    }
+
+    // Search for items by author
+    public static ArrayList<Book> getBooksByAuthor(String author) throws SQLException {
+        String sql = "SELECT * FROM books WHERE author LIKE ?";
+        var books = new ArrayList<Book>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, "%" + author + "%");
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        books.add(new Book(rs.getInt(1), rs.getString(2), rs.getString(3),
+                                rs.getString(4), rs.getBoolean(5)));
+                    }
+                }
+            }
+        }
+        return books;
+    }
+
+    // Search for items by subject
+    public static ArrayList<Book> getBooksBySubject(String subject) throws SQLException {
+        String sql = "SELECT * FROM books WHERE subject LIKE ?";
+        var books = new ArrayList<Book>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, "%" + subject + "%");
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        books.add(new Book(rs.getInt(1), rs.getString(2), rs.getString(3),
+                                rs.getString(4), rs.getBoolean(5)));
+                    }
+                }
+            }
+        }
+        return books;
+    }
+
+    // Check the person's personal information
+    public static PersonInfo getPersonInfo(String username) throws SQLException {
+        String sql = "SELECT id, user_name, name, address, phone_no, role FROM persons WHERE user_name = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, username);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        return new PersonInfo(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                                rs.getString(5), rs.getString(6));
+                    }
+                    return null;
+                }
+            }
+        }
+    }
+
+    // List books currently borrowed by a specific borrower
+    public static ArrayList<Book> getBooksBorrowedByBorrower(int borrowerId) throws SQLException {
+        String sql = "SELECT b.id, b.title, b.author, b.subject, b.is_issued " +
+                "FROM books b JOIN loans l ON b.id = l.book_id " +
+                "WHERE l.borrower_id = ? AND l.fine_paid = false";
+        var books = new ArrayList<Book>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, borrowerId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    books.add(new Book(
+                            rs.getInt(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getString(4),
+                            rs.getBoolean(5)));
+                }
+            }
+        }
+        return books;
+    }
+
+    // Check in an item that has been returned
+    public static void updateLoanReturnDate(int loanId, String returnDate) throws SQLException {
+    }
+
+    // Renew an item (extend due date)
+    public static void updateLoanDueDate(int loanId, String newDueDate) throws SQLException {
+    }
+
+    // Record that a fine has been paid
+    public static void updateFineStatus(int fineId, boolean isPaid) throws SQLException {
+    }
+
+    // Update a borrower's personal information (address, phone number, etc.)
+    public static void updatePerson(int personId, String name, String address, String phoneno) throws SQLException {
+    }
+
+    // Change the information recorded about an item
+    public static void updateBook(int bookId, String title, String author, String subject, String isbn)
+            throws SQLException {
+    }
+
+    // Delete an item from the collection
+    public static void deleteBook(int bookId) throws SQLException {
+    }
+
     private static void createClerk(Connection conn, int id, double salary, int deskNo) {
         String sql = "INSERT INTO clerks (id, salary, desk_no) VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -204,13 +324,41 @@ public class DatabaseOperations {
         }
     }
 
+    public static Book getBookById(int id) throws SQLException {
+        String sql = "SELECT * FROM books WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, id);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Book(
+                            rs.getInt(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getString(4),
+                            rs.getBoolean(5));
+                }
+            }
+        }
+        return null; // Return null if no book with that ID exists
+    }
+
     public static void main(String[] args) {
         try {
-            createBook("Harry Potter", "J.K.Rowling", "Fantasy");
+            createBook("Journey To The West", "Wu Cheng'en", "Fantasy");
         } catch (SQLException ex) {
             System.getLogger(DatabaseOperations.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
 
     }
 
+    public record PasswordRole(String password, String role) {
+    }
+
+    public record PersonInfo(int id, String userName, String name, String address, String phoneNo, String role) {
+    }
 }

@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import lms.database.DatabaseOperations;
+import lms.database.DatabaseOperations.PasswordRole;
 
 public class LoginScreen extends JFrame {
 	private static final long serialVersionUID = 3908597196893209836L;
@@ -58,12 +59,22 @@ public class LoginScreen extends JFrame {
 		String username = userNameInput.getText();
 		String password = passwordInput.getText();
 
-		String realPassword;
+		PasswordRole realPasswordRole;
 
 		try {
-			realPassword = DatabaseOperations.findPasswordByUserName(username);
-			if (password.equals(realPassword)) {
+			realPasswordRole = DatabaseOperations.getPasswordByUserName(username);
+			if (password.equals(realPasswordRole.password())) {
 				loginResult.setText("Login successful!");
+				switch(realPasswordRole.role()){
+					case "borrower" -> {
+                                }
+					case "clerk" -> {
+                                }
+					case "librarian" -> {
+                                }
+					case "admin" -> {
+                                }
+				}
 			}
 			else
 			{
