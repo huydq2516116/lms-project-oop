@@ -227,6 +227,54 @@ public class DatabaseOperations {
         return books;
     }
 
+    public static Book getBookById(int id) throws SQLException {
+        String sql = "SELECT * FROM books WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, id);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Book(
+                            rs.getInt(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getString(4),
+                            rs.getBoolean(5));
+                }
+            }
+        }
+        return null; // Return null if no book with that ID exists
+    }
+
+    public static Loan getLoanById(int id) throws SQLException {
+        String sql = "SELECT * FROM loans WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, id);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Loan(
+                            rs.getInt(1),
+                            rs.getDate(2),
+                            rs.getDate(3),
+                            rs.getBoolean(4),
+                            rs.getInt(5),
+                            rs.getInt(6),
+                            rs.getInt(7),
+                            rs.getInt(8));
+                }
+            }
+        }
+        return null; // Return null if no book with that ID exists
+    }
+
     // Check the person's personal information
     public static PersonInfo getPersonInfo(String username) throws SQLException {
         String sql = "SELECT id, user_name, name, address, phone_no, role FROM persons WHERE user_name = ?";
@@ -269,7 +317,19 @@ public class DatabaseOperations {
     }
 
     // Check in an item that has been returned
-    public static void updateLoanReturnDate(int loanId, String returnDate) throws SQLException {
+    public static void updateLoanReturnDate(int loanId, Date returnDate) throws SQLException {
+        String sql = "UPDATE loans SET date_returned = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setDate(1, returnDate);
+            pstmt.setInt(2, loanId);
+
+            // Execute the update
+            pstmt.executeUpdate();
+        }
     }
 
     // Renew an item (extend due date)
@@ -277,20 +337,72 @@ public class DatabaseOperations {
     }
 
     // Record that a fine has been paid
-    public static void updateFineStatus(int fineId, boolean isPaid) throws SQLException {
+    public static void updateFineStatus(int loanId) throws SQLException {
+        String sql = "UPDATE loans SET finePaid = true WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setInt(1, loanId);
+
+            // Execute the update
+            pstmt.executeUpdate();
+        }
     }
 
     // Update a borrower's personal information (address, phone number, etc.)
-    public static void updatePerson(int personId, String name, String address, String phoneno) throws SQLException {
+    public static void updatePerson(int personId, String user_name, String address, String phone_no)
+            throws SQLException {
+        String sql = "UPDATE persons SET user_name = ?, address = ?, phone_no = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setString(1, user_name);
+            pstmt.setString(2, address);
+            pstmt.setString(3, phone_no);
+            pstmt.setInt(4, personId);
+
+            // Execute the update
+            pstmt.executeUpdate();
+        }
     }
 
     // Change the information recorded about an item
-    public static void updateBook(int bookId, String title, String author, String subject, String isbn)
+    public static void updateBook(int bookId, String title, String author, String subject, boolean is_issued)
             throws SQLException {
+        String sql = "UPDATE books SET title = ?, author = ?, subject = ?, is_issued = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setString(1, title);
+            pstmt.setString(2, author);
+            pstmt.setString(3, subject);
+            pstmt.setBoolean(4, is_issued);
+            pstmt.setInt(5, bookId);
+
+            // Execute the update
+            pstmt.executeUpdate();
+        }
     }
 
     // Delete an item from the collection
     public static void deleteBook(int bookId) throws SQLException {
+        String sql = "DELETE FROM books WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, bookId);
+
+            // Execute the delete statement
+            pstmt.executeUpdate();
+        }
     }
 
     private static void createClerk(Connection conn, int id, double salary, int deskNo) {
@@ -324,28 +436,7 @@ public class DatabaseOperations {
         }
     }
 
-    public static Book getBookById(int id) throws SQLException {
-        String sql = "SELECT * FROM books WHERE id = ?";
-
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            // Bind the ID parameter safely
-            pstmt.setInt(1, id);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Book(
-                            rs.getInt(1),
-                            rs.getString(2),
-                            rs.getString(3),
-                            rs.getString(4),
-                            rs.getBoolean(5));
-                }
-            }
-        }
-        return null; // Return null if no book with that ID exists
-    }
+    
 
     public static void main(String[] args) {
         try {
