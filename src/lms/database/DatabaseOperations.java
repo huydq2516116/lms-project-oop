@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 
 import lms.object.Book;
+import lms.object.HoldRequest;
 import lms.object.Loan;
 
 public class DatabaseOperations {
@@ -275,6 +276,84 @@ public class DatabaseOperations {
         return null; // Return null if no book with that ID exists
     }
 
+    public static ArrayList<Loan> getLoansByBorrowerId(int id) throws SQLException {
+        String sql = "SELECT * FROM loans WHERE borrower_id = ?";
+        var loans = new ArrayList<Loan>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // Bind the ID parameter safely
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                    }
+                }
+            }
+        }
+        return loans;
+    }
+
+    public static ArrayList<Loan> getLoansByBookId(int id) throws SQLException {
+        String sql = "SELECT * FROM loans WHERE book_id = ?";
+        var loans = new ArrayList<Loan>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // Bind the ID parameter safely
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                    }
+                }
+            }
+        }
+        return loans;
+    }
+
+    public static ArrayList<HoldRequest> getHoldRequestsByBorrowerId(int id) throws SQLException {
+        String sql = "SELECT * FROM hold_requests WHERE borrower_id = ?";
+        var hold_requests = new ArrayList<HoldRequest>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // Bind the ID parameter safely
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        hold_requests.add(new HoldRequest(rs.getInt(1), rs.getDate(2), rs.getInt(3), rs.getInt(4)));
+                    }
+                }
+            }
+        }
+        return hold_requests;
+    }
+
+    public static ArrayList<HoldRequest> getHoldRequestsByBookId(int id) throws SQLException {
+        String sql = "SELECT * FROM hold_requests WHERE book_id = ?";
+        var hold_requests = new ArrayList<HoldRequest>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // Bind the ID parameter safely
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        hold_requests.add(new HoldRequest(rs.getInt(1), rs.getDate(2), rs.getInt(3), rs.getInt(4)));
+                    }
+                }
+            }
+        }
+        return hold_requests;
+    }
+
     // Check the person's personal information
     public static PersonInfo getPersonInfo(String username) throws SQLException {
         String sql = "SELECT id, user_name, name, address, phone_no, role FROM persons WHERE user_name = ?";
@@ -405,6 +484,20 @@ public class DatabaseOperations {
         }
     }
 
+    public static void deleteHoldRequest(int holdRequestId) throws SQLException {
+        String sql = "DELETE FROM hold_requests WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, holdRequestId);
+
+            // Execute the delete statement
+            pstmt.executeUpdate();
+        }
+    }
+
     private static void createClerk(Connection conn, int id, double salary, int deskNo) {
         String sql = "INSERT INTO clerks (id, salary, desk_no) VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -434,17 +527,6 @@ public class DatabaseOperations {
         } catch (SQLException e) {
             System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
         }
-    }
-
-    
-
-    public static void main(String[] args) {
-        try {
-            createBook("Journey To The West", "Wu Cheng'en", "Fantasy");
-        } catch (SQLException ex) {
-            System.getLogger(DatabaseOperations.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
-
     }
 
     public record PasswordRole(String password, String role) {
