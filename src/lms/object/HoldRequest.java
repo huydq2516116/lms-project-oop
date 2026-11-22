@@ -1,12 +1,14 @@
 package lms.object;
 
+import java.util.Date;
+
 public class HoldRequest {
     private final int holdRequestId;
-    private final int requestDate;
+    private final Date requestDate;
     private final int borrowerId;
     private final int bookId;
 
-    public HoldRequest(int bookId, int borrowerId, int holdRequestId, int requestDate) {
+    public HoldRequest(int bookId, Date requestDate, int borrowerId, int holdRequestId) {
         this.bookId = bookId;
         this.borrowerId = borrowerId;
         this.holdRequestId = holdRequestId;
@@ -17,7 +19,7 @@ public class HoldRequest {
         return holdRequestId;
     }
 
-    public int getRequestDate() {
+    public Date getRequestDate() {
         return requestDate;
     }
 

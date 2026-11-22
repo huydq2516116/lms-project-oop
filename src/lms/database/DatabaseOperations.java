@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 
 import lms.object.Book;
+import lms.object.HoldRequest;
 import lms.object.Loan;
 
 public class DatabaseOperations {
@@ -32,7 +33,7 @@ public class DatabaseOperations {
                 pstmt.setString(6, role);
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                    System.out.println("-> [CREATE] Create Person Success!");
                 }
             }
         }
@@ -52,13 +53,13 @@ public class DatabaseOperations {
                 pstmt.setString(6, role);
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                    System.out.println("-> [CREATE] Create Person Success!");
                     int generatedId = -1;
                     try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                         if (generatedKeys.next()) {
                             // Retrieve the ID (column index 1)
                             generatedId = generatedKeys.getInt(1);
-                            System.out.println("Successfully inserted row! Generated ID: " + generatedId);
+                            System.out.println("Successfully inserted person! Generated ID: " + generatedId);
                         } else {
                             System.out.println("Insertion succeeded, but no ID was obtained.");
                         }
@@ -83,7 +84,7 @@ public class DatabaseOperations {
 
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm hr thành công!");
+                    System.out.println("-> [CREATE] Create HoldRequest Success!");
                 }
             }
         }
@@ -100,7 +101,7 @@ public class DatabaseOperations {
 
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm loan thành công!");
+                    System.out.println("-> [CREATE] Create Loan Success!");
                 }
             }
         }
@@ -117,7 +118,7 @@ public class DatabaseOperations {
 
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm book thành công!");
+                    System.out.println("-> [CREATE] Create book Success!");
                 }
             }
         }
@@ -227,6 +228,132 @@ public class DatabaseOperations {
         return books;
     }
 
+    public static Book getBookById(int id) throws SQLException {
+        String sql = "SELECT * FROM books WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, id);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Book(
+                            rs.getInt(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getString(4),
+                            rs.getBoolean(5));
+                }
+            }
+        }
+        return null; // Return null if no book with that ID exists
+    }
+
+    public static Loan getLoanById(int id) throws SQLException {
+        String sql = "SELECT * FROM loans WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, id);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Loan(
+                            rs.getInt(1),
+                            rs.getDate(2),
+                            rs.getDate(3),
+                            rs.getBoolean(4),
+                            rs.getInt(5),
+                            rs.getInt(6),
+                            rs.getInt(7),
+                            rs.getInt(8));
+                }
+            }
+        }
+        return null; // Return null if no book with that ID exists
+    }
+
+    public static ArrayList<Loan> getLoansByBorrowerId(int id) throws SQLException {
+        String sql = "SELECT * FROM loans WHERE borrower_id = ?";
+        var loans = new ArrayList<Loan>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // Bind the ID parameter safely
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                    }
+                }
+            }
+        }
+        return loans;
+    }
+
+    public static ArrayList<Loan> getLoansByBookId(int id) throws SQLException {
+        String sql = "SELECT * FROM loans WHERE book_id = ?";
+        var loans = new ArrayList<Loan>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // Bind the ID parameter safely
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                    }
+                }
+            }
+        }
+        return loans;
+    }
+
+    public static ArrayList<HoldRequest> getHoldRequestsByBorrowerId(int id) throws SQLException {
+        String sql = "SELECT * FROM hold_requests WHERE borrower_id = ?";
+        var hold_requests = new ArrayList<HoldRequest>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // Bind the ID parameter safely
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        hold_requests.add(new HoldRequest(rs.getInt(1), rs.getDate(2), rs.getInt(3), rs.getInt(4)));
+                    }
+                }
+            }
+        }
+        return hold_requests;
+    }
+
+    public static ArrayList<HoldRequest> getHoldRequestsByBookId(int id) throws SQLException {
+        String sql = "SELECT * FROM hold_requests WHERE book_id = ?";
+        var hold_requests = new ArrayList<HoldRequest>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                // Bind the ID parameter safely
+                pstmt.setInt(1, id);
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        hold_requests.add(new HoldRequest(rs.getInt(1), rs.getDate(2), rs.getInt(3), rs.getInt(4)));
+                    }
+                }
+            }
+        }
+        return hold_requests;
+    }
+
     // Check the person's personal information
     public static PersonInfo getPersonInfo(String username) throws SQLException {
         String sql = "SELECT id, user_name, name, address, phone_no, role FROM persons WHERE user_name = ?";
@@ -269,28 +396,132 @@ public class DatabaseOperations {
     }
 
     // Check in an item that has been returned
-    public static void updateLoanReturnDate(int loanId, String returnDate) throws SQLException {
-    }
+    public static void updateLoanReturnDate(int loanId, Date returnDate) throws SQLException {
+        String sql = "UPDATE loans SET date_returned = ? WHERE id = ?";
 
-    // Renew an item (extend due date)
-    public static void updateLoanDueDate(int loanId, String newDueDate) throws SQLException {
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setDate(1, returnDate);
+            pstmt.setInt(2, loanId);
+
+            // Execute the update
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Loan return date updated successfully.");
+            } else {
+                System.out.println("No loan found with ID: " + loanId);
+            }
+        }
     }
 
     // Record that a fine has been paid
-    public static void updateFineStatus(int fineId, boolean isPaid) throws SQLException {
+    public static void updateFineStatus(int loanId) throws SQLException {
+        String sql = "UPDATE loans SET finePaid = true WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setInt(1, loanId);
+
+            // Execute the update
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Fine status updated successfully.");
+            } else {
+                System.out.println("No loan found with ID: " + loanId);
+            }
+        }
     }
 
     // Update a borrower's personal information (address, phone number, etc.)
-    public static void updatePerson(int personId, String name, String address, String phoneno) throws SQLException {
+    public static void updatePerson(int personId, String user_name, String address, String phone_no)
+            throws SQLException {
+        String sql = "UPDATE persons SET user_name = ?, address = ?, phone_no = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setString(1, user_name);
+            pstmt.setString(2, address);
+            pstmt.setString(3, phone_no);
+            pstmt.setInt(4, personId);
+
+            // Execute the update
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Person updated successfully.");
+            } else {
+                System.out.println("No person found with ID: " + personId);
+            }
+        }
     }
 
     // Change the information recorded about an item
-    public static void updateBook(int bookId, String title, String author, String subject, String isbn)
+    public static void updateBook(int bookId, String title, String author, String subject, boolean is_issued)
             throws SQLException {
+        String sql = "UPDATE books SET title = ?, author = ?, subject = ?, is_issued = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setString(1, title);
+            pstmt.setString(2, author);
+            pstmt.setString(3, subject);
+            pstmt.setBoolean(4, is_issued);
+            pstmt.setInt(5, bookId);
+
+            // Execute the update
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Fine status updated successfully.");
+            } else {
+                System.out.println("No book found with ID: " + bookId);
+            }
+        }
     }
 
     // Delete an item from the collection
     public static void deleteBook(int bookId) throws SQLException {
+        String sql = "DELETE FROM books WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, bookId);
+
+            // Execute the delete statement and check affected rows
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Book deleted successfully.");
+            } else {
+                System.out.println("No book found with ID: " + bookId);
+            }
+        }
+    }
+
+    public static void deleteHoldRequest(int holdRequestId) throws SQLException {
+        String sql = "DELETE FROM hold_requests WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the ID parameter safely
+            pstmt.setInt(1, holdRequestId);
+
+            // Execute the delete statement and check affected rows
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Book deleted successfully.");
+            } else {
+                System.out.println("No book found with ID: " + holdRequestId);
+            }
+        }
     }
 
     private static void createClerk(Connection conn, int id, double salary, int deskNo) {
@@ -301,10 +532,10 @@ public class DatabaseOperations {
             pstmt.setInt(3, deskNo);
             int rowsInserted = pstmt.executeUpdate();
             if (rowsInserted > 0) {
-                System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                System.out.println("-> [CREATE] Create Clerk Success!");
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
+            System.err.println("Error when create clerk: " + e.getMessage());
         }
     }
 
@@ -317,43 +548,11 @@ public class DatabaseOperations {
             pstmt.setInt(3, officeNo);
             int rowsInserted = pstmt.executeUpdate();
             if (rowsInserted > 0) {
-                System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                System.out.println("-> [CREATE] Create Librarians Success!");
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
+            System.err.println("Error when add librarians: " + e.getMessage());
         }
-    }
-
-    public static Book getBookById(int id) throws SQLException {
-        String sql = "SELECT * FROM books WHERE id = ?";
-
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            // Bind the ID parameter safely
-            pstmt.setInt(1, id);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Book(
-                            rs.getInt(1),
-                            rs.getString(2),
-                            rs.getString(3),
-                            rs.getString(4),
-                            rs.getBoolean(5));
-                }
-            }
-        }
-        return null; // Return null if no book with that ID exists
-    }
-
-    public static void main(String[] args) {
-        try {
-            createBook("Journey To The West", "Wu Cheng'en", "Fantasy");
-        } catch (SQLException ex) {
-            System.getLogger(DatabaseOperations.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        }
-
     }
 
     public record PasswordRole(String password, String role) {
