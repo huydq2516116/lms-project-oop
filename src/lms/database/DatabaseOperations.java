@@ -33,7 +33,7 @@ public class DatabaseOperations {
                 pstmt.setString(6, role);
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                    System.out.println("-> [CREATE] Create Person Success!");
                 }
             }
         }
@@ -53,13 +53,13 @@ public class DatabaseOperations {
                 pstmt.setString(6, role);
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                    System.out.println("-> [CREATE] Create Person Success!");
                     int generatedId = -1;
                     try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                         if (generatedKeys.next()) {
                             // Retrieve the ID (column index 1)
                             generatedId = generatedKeys.getInt(1);
-                            System.out.println("Successfully inserted row! Generated ID: " + generatedId);
+                            System.out.println("Successfully inserted person! Generated ID: " + generatedId);
                         } else {
                             System.out.println("Insertion succeeded, but no ID was obtained.");
                         }
@@ -84,7 +84,7 @@ public class DatabaseOperations {
 
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm hr thành công!");
+                    System.out.println("-> [CREATE] Create HoldRequest Success!");
                 }
             }
         }
@@ -101,7 +101,7 @@ public class DatabaseOperations {
 
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm loan thành công!");
+                    System.out.println("-> [CREATE] Create Loan Success!");
                 }
             }
         }
@@ -118,7 +118,7 @@ public class DatabaseOperations {
 
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
-                    System.out.println("-> [CREATE] Thêm book thành công!");
+                    System.out.println("-> [CREATE] Create book Success!");
                 }
             }
         }
@@ -407,12 +407,13 @@ public class DatabaseOperations {
             pstmt.setInt(2, loanId);
 
             // Execute the update
-            pstmt.executeUpdate();
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Loan return date updated successfully.");
+            } else {
+                System.out.println("No loan found with ID: " + loanId);
+            }
         }
-    }
-
-    // Renew an item (extend due date)
-    public static void updateLoanDueDate(int loanId, String newDueDate) throws SQLException {
     }
 
     // Record that a fine has been paid
@@ -426,7 +427,12 @@ public class DatabaseOperations {
             pstmt.setInt(1, loanId);
 
             // Execute the update
-            pstmt.executeUpdate();
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Fine status updated successfully.");
+            } else {
+                System.out.println("No loan found with ID: " + loanId);
+            }
         }
     }
 
@@ -445,7 +451,12 @@ public class DatabaseOperations {
             pstmt.setInt(4, personId);
 
             // Execute the update
-            pstmt.executeUpdate();
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Person updated successfully.");
+            } else {
+                System.out.println("No person found with ID: " + personId);
+            }
         }
     }
 
@@ -465,7 +476,12 @@ public class DatabaseOperations {
             pstmt.setInt(5, bookId);
 
             // Execute the update
-            pstmt.executeUpdate();
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Fine status updated successfully.");
+            } else {
+                System.out.println("No book found with ID: " + bookId);
+            }
         }
     }
 
@@ -479,8 +495,13 @@ public class DatabaseOperations {
             // Bind the ID parameter safely
             pstmt.setInt(1, bookId);
 
-            // Execute the delete statement
-            pstmt.executeUpdate();
+            // Execute the delete statement and check affected rows
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Book deleted successfully.");
+            } else {
+                System.out.println("No book found with ID: " + bookId);
+            }
         }
     }
 
@@ -493,8 +514,13 @@ public class DatabaseOperations {
             // Bind the ID parameter safely
             pstmt.setInt(1, holdRequestId);
 
-            // Execute the delete statement
-            pstmt.executeUpdate();
+            // Execute the delete statement and check affected rows
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Book deleted successfully.");
+            } else {
+                System.out.println("No book found with ID: " + holdRequestId);
+            }
         }
     }
 
@@ -506,10 +532,10 @@ public class DatabaseOperations {
             pstmt.setInt(3, deskNo);
             int rowsInserted = pstmt.executeUpdate();
             if (rowsInserted > 0) {
-                System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                System.out.println("-> [CREATE] Create Clerk Success!");
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
+            System.err.println("Error when create clerk: " + e.getMessage());
         }
     }
 
@@ -522,10 +548,10 @@ public class DatabaseOperations {
             pstmt.setInt(3, officeNo);
             int rowsInserted = pstmt.executeUpdate();
             if (rowsInserted > 0) {
-                System.out.println("-> [CREATE] Thêm người dùng thành công!");
+                System.out.println("-> [CREATE] Create Librarians Success!");
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi khi thêm người dùng: " + e.getMessage());
+            System.err.println("Error when add librarians: " + e.getMessage());
         }
     }
 
