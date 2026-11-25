@@ -66,7 +66,7 @@ public class DatabaseOperations {
                     }
                     if (role.equals("clerk"))
                         createClerk(conn, generatedId, salary, deskOrOfficeNo);
-                    else if (role.equals("librarians"))
+                    else if (role.equals("librarian"))
                         createLibrarian(conn, generatedId, salary, deskOrOfficeNo);
                 }
             }
@@ -540,7 +540,7 @@ public class DatabaseOperations {
     }
 
     private static void createLibrarian(Connection conn, int id, double salary, int officeNo) {
-        String sql = "INSERT INTO librarians (id, salary, desk_no) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO librarians (id, salary, office_no) VALUES (?, ?, ?)";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
@@ -560,4 +560,5 @@ public class DatabaseOperations {
 
     public record PersonInfo(int id, String userName, String name, String address, String phoneNo, String role) {
     }
+
 }
