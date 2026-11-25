@@ -28,12 +28,14 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 import lms.database.DatabaseOperations;
 import lms.database.DatabaseOperations.PasswordRole;
+import lms.database.DatabaseOperations.PersonInfo;
+import lms.person.Borrower;
 
 /**
  * Màn hình đăng nhập hệ thống LMS (Library Management System).
  * Tuân thủ quy tắc phát triển Java Swing + FlatLaf của dự án.
  */
-public class LoginScreen extends JFrame {
+public final class LoginScreen extends JFrame {
 	private static final long serialVersionUID = 3908597196893209836L;
 
 	// Component định danh theo tiền tố chuẩn (txt, lbl, btn, pnl)
@@ -216,6 +218,11 @@ public class LoginScreen extends JFrame {
 			public void run() {
 				try {
 					PasswordRole realPasswordRole = DatabaseOperations.getPasswordByUserName(username);
+					PersonInfo personInfo = (realPasswordRole != null
+							&& password.equals(realPasswordRole.password())
+							&& "borrower".equalsIgnoreCase(realPasswordRole.role()))
+									? DatabaseOperations.getPersonInfo(username)
+									: null;
 
 					SwingUtilities.invokeLater(() -> {
 						setLoadingState(false);
@@ -233,7 +240,12 @@ public class LoginScreen extends JFrame {
 						// Điều hướng theo vai trò (sẽ mở các Dashboard tương ứng)
 						switch (realPasswordRole.role().toLowerCase()) {
 							case "borrower" -> {
-								// Mở BorrowerDashboard
+								Borrower borrower = personInfo != null
+										? new Borrower(personInfo.id(), personInfo.userName(), password,
+												personInfo.name(), personInfo.address(), personInfo.phoneNo())
+										: new Borrower(0, username, password, username, "", "");
+								dispose();
+								new BorrowerScreen(borrower);
 							}
 							case "clerk" -> {
 								// Mở ClerkDashboard
