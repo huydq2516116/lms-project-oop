@@ -91,14 +91,16 @@ public class DatabaseOperations {
     }
 
     public static void createLoan(int book_id, int borrower_id, int issuer_id) throws SQLException {
-        String sql = "INSERT INTO loans (issued_date, book_id ,borrower_id, issuer_id) VALUES (?, ? ,?,?)";
+        String sql = "INSERT INTO loans (issued_date, book_id ,borrower_id, issuer_id, due_date) VALUES (?, ? ,?, ?, ?)";
+        LocalDate issuedDate = LocalDate.now();
+        LocalDate dueDate = issuedDate.plusDays(30);
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setDate(1, Date.valueOf(LocalDate.now()));
+                pstmt.setDate(1, Date.valueOf(issuedDate));
                 pstmt.setInt(2, book_id);
                 pstmt.setInt(3, borrower_id);
                 pstmt.setInt(4, issuer_id);
-
+                pstmt.setDate(5, Date.valueOf(dueDate));
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
                     System.out.println("-> [CREATE] Create Loan Success!");
@@ -166,7 +168,7 @@ public class DatabaseOperations {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
-                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8), rs.getDate(9)));
                     }
                 }
             }
@@ -269,7 +271,8 @@ public class DatabaseOperations {
                             rs.getInt(5),
                             rs.getInt(6),
                             rs.getInt(7),
-                            rs.getInt(8));
+                            rs.getInt(8),
+                            rs.getDate(9));
                 }
             }
         }
@@ -288,7 +291,7 @@ public class DatabaseOperations {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
-                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8), rs.getDate(9)));
                     }
                 }
             }
@@ -308,7 +311,7 @@ public class DatabaseOperations {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
-                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8), rs.getDate(9)));
                     }
                 }
             }
@@ -485,6 +488,26 @@ public class DatabaseOperations {
         }
     }
 
+    public static void updateLoanDueDate(int loanId, Date newDueDate) throws SQLException {
+        String sql = "UPDATE loans SET due_date = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setDate(1, newDueDate);
+            pstmt.setInt(2, loanId);
+
+            // Execute the update
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Loan return date updated successfully.");
+            } else {
+                System.out.println("No loan found with ID: " + loanId);
+            }
+        }
+    }
+
     // Delete an item from the collection
     public static void deleteBook(int bookId) throws SQLException {
         String sql = "DELETE FROM books WHERE id = ?";
@@ -560,4 +583,7 @@ public class DatabaseOperations {
 
     public record PersonInfo(int id, String userName, String name, String address, String phoneNo, String role) {
     }
+
+    
+
 }

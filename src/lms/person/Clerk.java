@@ -1,7 +1,7 @@
 package lms.person;
 
+import java.sql.Date;
 import java.sql.SQLException;
-import java.time.LocalDate;
 
 import lms.database.DatabaseOperations;
 
@@ -26,7 +26,7 @@ public class Clerk extends Staff {
     }
 
     // Renew an item's loan
-    public void renewLoan(int loanId, LocalDate newDueDate)
+    public void renewLoan(int loanId, Date newDueDate)
             throws SQLException {
 
         if (newDueDate == null) {
@@ -36,7 +36,7 @@ public class Clerk extends Staff {
         }
 
         DatabaseOperations.updateLoanDueDate(
-            loanId, newDueDate.toString()
+            loanId, newDueDate
         );
     }
 
