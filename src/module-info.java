@@ -13,5 +13,6 @@ module LMSProject {
 	exports lms.person;
 	exports lms.screen;
 	exports lms.screen.borrower;
+	exports lms.screen.clerk;
 	exports lms.screen.util;
 }

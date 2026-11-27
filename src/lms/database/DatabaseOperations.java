@@ -354,6 +354,57 @@ public class DatabaseOperations {
         return hold_requests;
     }
 
+    public static ArrayList<HoldRequest> getAllHoldRequests() throws SQLException {
+        String sql = "SELECT * FROM hold_requests";
+        var holdRequests = new ArrayList<HoldRequest>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                holdRequests.add(new HoldRequest(rs.getInt(1), rs.getDate(2), rs.getInt(3), rs.getInt(4)));
+            }
+        }
+        return holdRequests;
+    }
+
+    public static ArrayList<Object[]> searchBorrowers(String keyword) throws SQLException {
+        String sql = "SELECT id, name, user_name, address, phone_no FROM persons WHERE LOWER(role) = 'borrower' ORDER BY id";
+        var borrowers = new ArrayList<Object[]>();
+        String kw = keyword != null ? keyword.trim().toLowerCase() : "";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                int id = rs.getInt(1);
+                String name = rs.getString(2);
+                String userName = rs.getString(3);
+                String address = rs.getString(4);
+                String phoneNo = rs.getString(5);
+                if (kw.isEmpty()
+                        || (name != null && name.toLowerCase().contains(kw))
+                        || (userName != null && userName.toLowerCase().contains(kw))
+                        || String.valueOf(id).equals(kw)) {
+                    borrowers.add(new Object[] { id, name, userName, address, phoneNo });
+                }
+            }
+        }
+        return borrowers;
+    }
+
+    public static ClerkInfo getClerkInfo(int id) throws SQLException {
+        String sql = "SELECT salary, desk_no FROM clerks WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new ClerkInfo(rs.getDouble(1), rs.getInt(2));
+                }
+            }
+        }
+        return null;
+    }
+
     // Check the person's personal information
     public static PersonInfo getPersonInfo(String username) throws SQLException {
         String sql = "SELECT id, user_name, name, address, phone_no, role FROM persons WHERE user_name = ?";
@@ -430,6 +481,25 @@ public class DatabaseOperations {
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
                 System.out.println("Fine status updated successfully.");
+            } else {
+                System.out.println("No loan found with ID: " + loanId);
+            }
+        }
+    }
+
+    // Renew an item's due date
+    public static void updateLoanDueDate(int loanId, String newDueDate) throws SQLException {
+        String sql = "UPDATE loans SET due_date = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setDate(1, Date.valueOf(newDueDate));
+            pstmt.setInt(2, loanId);
+
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Loan due date updated successfully.");
             } else {
                 System.out.println("No loan found with ID: " + loanId);
             }
@@ -559,5 +629,8 @@ public class DatabaseOperations {
     }
 
     public record PersonInfo(int id, String userName, String name, String address, String phoneNo, String role) {
+    }
+
+    public record ClerkInfo(double salary, int deskNo) {
     }
 }

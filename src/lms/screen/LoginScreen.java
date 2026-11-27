@@ -27,9 +27,11 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import lms.database.DatabaseOperations;
+import lms.database.DatabaseOperations.ClerkInfo;
 import lms.database.DatabaseOperations.PasswordRole;
 import lms.database.DatabaseOperations.PersonInfo;
 import lms.person.Borrower;
+import lms.person.Clerk;
 
 /**
  * Màn hình đăng nhập hệ thống LMS (Library Management System).
@@ -218,11 +220,17 @@ public final class LoginScreen extends JFrame {
 			public void run() {
 				try {
 					PasswordRole realPasswordRole = DatabaseOperations.getPasswordByUserName(username);
-					PersonInfo personInfo = (realPasswordRole != null
-							&& password.equals(realPasswordRole.password())
-							&& "borrower".equalsIgnoreCase(realPasswordRole.role()))
+					boolean isAuthenticated = realPasswordRole != null && password.equals(realPasswordRole.password());
+					String roleLower = isAuthenticated && realPasswordRole.role() != null
+							? realPasswordRole.role().toLowerCase()
+							: "";
+					PersonInfo personInfo = (isAuthenticated
+							&& ("borrower".equals(roleLower) || "clerk".equals(roleLower)))
 									? DatabaseOperations.getPersonInfo(username)
 									: null;
+					ClerkInfo clerkInfo = ("clerk".equals(roleLower) && personInfo != null)
+							? DatabaseOperations.getClerkInfo(personInfo.id())
+							: null;
 
 					SwingUtilities.invokeLater(() -> {
 						setLoadingState(false);
@@ -248,7 +256,14 @@ public final class LoginScreen extends JFrame {
 								new BorrowerScreen(borrower);
 							}
 							case "clerk" -> {
-								// Mở ClerkDashboard
+								double salary = clerkInfo != null ? clerkInfo.salary() : 0.0;
+								int deskNo = clerkInfo != null ? clerkInfo.deskNo() : 1;
+								Clerk clerk = personInfo != null
+										? new Clerk(personInfo.id(), deskNo, personInfo.userName(), password,
+												personInfo.name(), personInfo.address(), personInfo.phoneNo(), salary)
+										: new Clerk(0, deskNo, username, password, username, "", "", salary);
+								dispose();
+								new ClerkScreen(clerk);
 							}
 							case "librarian" -> {
 								// Mở LibrarianDashboard
