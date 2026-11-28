@@ -21,8 +21,8 @@ public class ClerkMockData {
 	public ClerkMockData(int clerkId) {
 		this.clerkId = clerkId;
 		this.mockHoldRequests = new ArrayList<>();
-		this.mockHoldRequests.add(new HoldRequest(103, new Date(), 1, 301));
-		this.mockHoldRequests.add(new HoldRequest(104, new Date(), 2, 302));
+		this.mockHoldRequests.add(new HoldRequest(301, new Date(), 1, 103));
+		this.mockHoldRequests.add(new HoldRequest(302, new Date(), 2, 104));
 		this.mockLoans = new ArrayList<>(createInitialLoans());
 	}
 

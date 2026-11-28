@@ -20,7 +20,7 @@ public class BorrowerMockData {
 	public BorrowerMockData(int borrowerId) {
 		this.borrowerId = borrowerId;
 		this.mockHoldRequests = new ArrayList<>();
-		this.mockHoldRequests.add(new HoldRequest(105, new Date(), borrowerId, 301));
+		this.mockHoldRequests.add(new HoldRequest(301, new Date(), borrowerId, 105));
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class BorrowerMockData {
 	 * Thêm yêu cầu đặt giữ mới trong chế độ demo
 	 */
 	public synchronized void addMockHoldRequest(int bookId) {
-		mockHoldRequests.add(new HoldRequest(bookId, new Date(), borrowerId, nextHoldId++));
+		mockHoldRequests.add(new HoldRequest(nextHoldId++, new Date(), borrowerId, bookId));
 	}
 
 	/**

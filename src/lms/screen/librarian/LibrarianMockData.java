@@ -28,8 +28,8 @@ public class LibrarianMockData {
 		this.mockBooks = new ArrayList<>(createInitialBooks());
 		this.mockLoans = new ArrayList<>(createInitialLoans());
 		this.mockHoldRequests = new ArrayList<>();
-		this.mockHoldRequests.add(new HoldRequest(103, new Date(), 1, 301));
-		this.mockHoldRequests.add(new HoldRequest(104, new Date(), 2, 302));
+		this.mockHoldRequests.add(new HoldRequest(301, new Date(), 1, 103));
+		this.mockHoldRequests.add(new HoldRequest(302, new Date(), 2, 104));
 		this.mockBorrowers = new ArrayList<>(createInitialBorrowers());
 	}
 
