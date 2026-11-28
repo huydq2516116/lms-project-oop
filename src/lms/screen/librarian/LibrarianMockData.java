@@ -48,11 +48,12 @@ public class LibrarianMockData {
 		long dayMs = 86_400_000L;
 		Date now = new Date();
 		list.add(new Loan(501, new Date(now.getTime() - 5 * dayMs), null, false,
-				102, 1, librarianId, 0));
+				102, 1, librarianId, 0, new Date(now.getTime() + 9 * dayMs)));
 		list.add(new Loan(502, new Date(now.getTime() - 20 * dayMs),
-				new Date(now.getTime() - 12 * dayMs), true, 101, 2, librarianId, librarianId));
+				new Date(now.getTime() - 12 * dayMs), true, 101, 2, librarianId, librarianId,
+				new Date(now.getTime() - 6 * dayMs)));
 		list.add(new Loan(503, new Date(now.getTime() - 30 * dayMs), null, false,
-				105, 3, librarianId, 0));
+				105, 3, librarianId, 0, new Date(now.getTime() - 16 * dayMs)));
 		return list;
 	}
 
@@ -121,8 +122,10 @@ public class LibrarianMockData {
 	}
 
 	public synchronized void addMockLoan(int bookId, int borrowerId) {
-		mockLoans.add(new Loan(nextLoanId++, new Date(), null, false,
-				bookId, borrowerId, librarianId, 0));
+		Date now = new Date();
+		Date dueDate = new Date(now.getTime() + 14 * 86_400_000L);
+		mockLoans.add(new Loan(nextLoanId++, now, null, false,
+				bookId, borrowerId, librarianId, 0, dueDate));
 		for (Book b : mockBooks) {
 			if (b.getBookId() == bookId) {
 				b.setIssued(true);
@@ -137,7 +140,7 @@ public class LibrarianMockData {
 			if (old.getLoanId() == loanId) {
 				Loan updated = new Loan(old.getLoanId(), old.getIssuedDate(), new Date(),
 						old.isFinePaid(), old.getBookId(), old.getBorrowerId(),
-						old.getIssuerId(), librarianId);
+						old.getIssuerId(), librarianId, old.getDueDate());
 				mockLoans.set(i, updated);
 				for (Book b : mockBooks) {
 					if (b.getBookId() == old.getBookId()) {
@@ -156,7 +159,7 @@ public class LibrarianMockData {
 			if (old.getLoanId() == loanId) {
 				Loan updated = new Loan(old.getLoanId(), old.getIssuedDate(), old.getDateReturned(),
 						true, old.getBookId(), old.getBorrowerId(),
-						old.getIssuerId(), old.getReceiverId());
+						old.getIssuerId(), old.getReceiverId(), old.getDueDate());
 				mockLoans.set(i, updated);
 				return;
 			}

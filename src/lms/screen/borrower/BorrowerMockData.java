@@ -69,9 +69,10 @@ public class BorrowerMockData {
 		List<Loan> list = new ArrayList<>();
 		long dayMs = 86_400_000L;
 		Date now = new Date();
-		list.add(new Loan(501, new Date(now.getTime() - 5 * dayMs), null, false, 102, borrowerId, 2, 0));
+		list.add(new Loan(501, new Date(now.getTime() - 5 * dayMs), null, false, 102, borrowerId, 2, 0,
+				new Date(now.getTime() + 9 * dayMs)));
 		list.add(new Loan(480, new Date(now.getTime() - 20 * dayMs), new Date(now.getTime() - 12 * dayMs), true,
-				101, borrowerId, 2, 2));
+				101, borrowerId, 2, 2, new Date(now.getTime() - 6 * dayMs)));
 		return list;
 	}
 

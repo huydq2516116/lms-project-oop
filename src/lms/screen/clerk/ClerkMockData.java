@@ -32,13 +32,14 @@ public class ClerkMockData {
 		Date now = new Date();
 		// Phiếu đang mượn
 		list.add(new Loan(501, new Date(now.getTime() - 5 * dayMs), null, false,
-				102, 1, clerkId, 0));
+				102, 1, clerkId, 0, new Date(now.getTime() + 9 * dayMs)));
 		// Phiếu đã trả, đã thanh toán phạt
 		list.add(new Loan(502, new Date(now.getTime() - 20 * dayMs),
-				new Date(now.getTime() - 12 * dayMs), true, 101, 2, clerkId, clerkId));
+				new Date(now.getTime() - 12 * dayMs), true, 101, 2, clerkId, clerkId,
+				new Date(now.getTime() - 6 * dayMs)));
 		// Phiếu đang mượn, chưa thanh toán phạt (quá hạn)
 		list.add(new Loan(503, new Date(now.getTime() - 30 * dayMs), null, false,
-				105, 3, clerkId, 0));
+				105, 3, clerkId, 0, new Date(now.getTime() - 16 * dayMs)));
 		return list;
 	}
 
@@ -90,8 +91,10 @@ public class ClerkMockData {
 	 * Thêm phiếu mượn mới trong chế độ demo
 	 */
 	public synchronized void addMockLoan(int bookId, int borrowerId) {
-		mockLoans.add(new Loan(nextLoanId++, new Date(), null, false,
-				bookId, borrowerId, clerkId, 0));
+		Date now = new Date();
+		Date dueDate = new Date(now.getTime() + 14 * 86_400_000L);
+		mockLoans.add(new Loan(nextLoanId++, now, null, false,
+				bookId, borrowerId, clerkId, 0, dueDate));
 	}
 
 	/**
@@ -103,7 +106,7 @@ public class ClerkMockData {
 				Loan old = mockLoans.get(i);
 				Loan updated = new Loan(old.getLoanId(), old.getIssuedDate(), new Date(),
 						old.isFinePaid(), old.getBookId(), old.getBorrowerId(),
-						old.getIssuerId(), clerkId);
+						old.getIssuerId(), clerkId, old.getDueDate());
 				mockLoans.set(i, updated);
 				return;
 			}
@@ -119,7 +122,7 @@ public class ClerkMockData {
 				Loan old = mockLoans.get(i);
 				Loan updated = new Loan(old.getLoanId(), old.getIssuedDate(), old.getDateReturned(),
 						true, old.getBookId(), old.getBorrowerId(),
-						old.getIssuerId(), old.getReceiverId());
+						old.getIssuerId(), old.getReceiverId(), old.getDueDate());
 				mockLoans.set(i, updated);
 				return;
 			}
