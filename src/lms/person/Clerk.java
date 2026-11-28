@@ -2,6 +2,7 @@ package lms.person;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.sql.Date;
 
 import lms.database.DatabaseOperations;
 
@@ -35,8 +36,8 @@ public class Clerk extends Staff {
             );
         }
 
-        DatabaseOperations.updateLoanDueDate(
-            loanId, newDueDate.toString()
+        DatabaseOperations.updateLoanReturnDate(
+            loanId, Date.valueOf(newDueDate)
         );
     }
 

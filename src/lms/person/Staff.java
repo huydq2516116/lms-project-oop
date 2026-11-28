@@ -29,7 +29,7 @@ public abstract class Staff extends Person {
             String address, String phoneNo) throws SQLException {
 
         DatabaseOperations.createPerson(
-            username, password, name, address, phoneNo, "BORROWER"
+            username, password, name, address, phoneNo, "borrower"
         );
     }
 
