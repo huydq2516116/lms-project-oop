@@ -91,14 +91,16 @@ public class DatabaseOperations {
     }
 
     public static void createLoan(int book_id, int borrower_id, int issuer_id) throws SQLException {
-        String sql = "INSERT INTO loans (issued_date, book_id ,borrower_id, issuer_id) VALUES (?, ? ,?,?)";
+        String sql = "INSERT INTO loans (issued_date, book_id ,borrower_id, issuer_id, due_date) VALUES (?, ? ,?, ?, ?)";
+        LocalDate issuedDate = LocalDate.now();
+        LocalDate dueDate = issuedDate.plusDays(30);
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setDate(1, Date.valueOf(LocalDate.now()));
+                pstmt.setDate(1, Date.valueOf(issuedDate));
                 pstmt.setInt(2, book_id);
                 pstmt.setInt(3, borrower_id);
                 pstmt.setInt(4, issuer_id);
-
+                pstmt.setDate(5, Date.valueOf(dueDate));
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) {
                     System.out.println("-> [CREATE] Create Loan Success!");
@@ -166,7 +168,7 @@ public class DatabaseOperations {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
-                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8), rs.getDate(9)));
                     }
                 }
             }
@@ -269,7 +271,8 @@ public class DatabaseOperations {
                             rs.getInt(5),
                             rs.getInt(6),
                             rs.getInt(7),
-                            rs.getInt(8));
+                            rs.getInt(8),
+                            rs.getDate(9));
                 }
             }
         }
@@ -288,7 +291,7 @@ public class DatabaseOperations {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
-                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8), rs.getDate(9)));
                     }
                 }
             }
@@ -308,7 +311,7 @@ public class DatabaseOperations {
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         loans.add(new Loan(rs.getInt(1), rs.getDate(2), rs.getDate(3), rs.getBoolean(4), rs.getInt(5),
-                                rs.getInt(6), rs.getInt(7), rs.getInt(8)));
+                                rs.getInt(6), rs.getInt(7), rs.getInt(8), rs.getDate(9)));
                     }
                 }
             }
@@ -352,6 +355,71 @@ public class DatabaseOperations {
             }
         }
         return hold_requests;
+    }
+
+    public static ArrayList<HoldRequest> getAllHoldRequests() throws SQLException {
+        String sql = "SELECT * FROM hold_requests";
+        var holdRequests = new ArrayList<HoldRequest>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                holdRequests.add(new HoldRequest(rs.getInt(1), rs.getDate(2), rs.getInt(3), rs.getInt(4)));
+            }
+        }
+        return holdRequests;
+    }
+
+    public static ArrayList<Object[]> searchBorrowers(String keyword) throws SQLException {
+        String sql = "SELECT id, name, user_name, address, phone_no FROM persons WHERE LOWER(role) = 'borrower' ORDER BY id";
+        var borrowers = new ArrayList<Object[]>();
+        String kw = keyword != null ? keyword.trim().toLowerCase() : "";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                int id = rs.getInt(1);
+                String name = rs.getString(2);
+                String userName = rs.getString(3);
+                String address = rs.getString(4);
+                String phoneNo = rs.getString(5);
+                if (kw.isEmpty()
+                        || (name != null && name.toLowerCase().contains(kw))
+                        || (userName != null && userName.toLowerCase().contains(kw))
+                        || String.valueOf(id).equals(kw)) {
+                    borrowers.add(new Object[] { id, name, userName, address, phoneNo });
+                }
+            }
+        }
+        return borrowers;
+    }
+
+    public static ClerkInfo getClerkInfo(int id) throws SQLException {
+        String sql = "SELECT salary, desk_no FROM clerks WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new ClerkInfo(rs.getDouble(1), rs.getInt(2));
+                }
+            }
+        }
+        return null;
+    }
+
+    public static LibrarianInfo getLibrarianInfo(int id) throws SQLException {
+        String sql = "SELECT * FROM librarians WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new LibrarianInfo(rs.getDouble(2), rs.getInt(3));
+                }
+            }
+        }
+        return null;
     }
 
     // Check the person's personal information
@@ -436,6 +504,25 @@ public class DatabaseOperations {
         }
     }
 
+    // Renew an item's due date
+    public static void updateLoanDueDate(int loanId, String newDueDate) throws SQLException {
+        String sql = "UPDATE loans SET due_date = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setDate(1, Date.valueOf(newDueDate));
+            pstmt.setInt(2, loanId);
+
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Loan due date updated successfully.");
+            } else {
+                System.out.println("No loan found with ID: " + loanId);
+            }
+        }
+    }
+
     // Update a borrower's personal information (address, phone number, etc.)
     public static void updatePerson(int personId, String user_name, String address, String phone_no)
             throws SQLException {
@@ -481,6 +568,26 @@ public class DatabaseOperations {
                 System.out.println("Fine status updated successfully.");
             } else {
                 System.out.println("No book found with ID: " + bookId);
+            }
+        }
+    }
+
+    public static void updateLoanDueDate(int loanId, Date newDueDate) throws SQLException {
+        String sql = "UPDATE loans SET due_date = ? WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Bind the parameters safely
+            pstmt.setDate(1, newDueDate);
+            pstmt.setInt(2, loanId);
+
+            // Execute the update
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Loan return date updated successfully.");
+            } else {
+                System.out.println("No loan found with ID: " + loanId);
             }
         }
     }
@@ -560,5 +667,13 @@ public class DatabaseOperations {
 
     public record PersonInfo(int id, String userName, String name, String address, String phoneNo, String role) {
     }
+
+    public record ClerkInfo(double salary, int deskNo) {
+    }
+
+    public record LibrarianInfo(double salary, int officeNo) {
+    }
+
+    
 
 }
