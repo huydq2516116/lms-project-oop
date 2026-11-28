@@ -49,13 +49,18 @@ public class HoldRequest {
 
     /** Same flow as the hold screens: lend the book, then delete the hold. */
     public Loan fulfill(int issuerId) throws SQLException {
+        if (DatabaseOperations.getHoldRequestsByBookId(bookId).stream()
+                .noneMatch(hold -> hold.holdRequestId == holdRequestId)) {
+            throw new IllegalStateException("This hold no longer exists.");
+        }
         Book book = DatabaseOperations.getBookById(bookId);
         if (book == null) {
             throw new IllegalStateException("Reserved book is missing from the catalog.");
         }
-        Loan loan = book.checkOut(borrowerId, issuerId);
+        book.lend(borrowerId, issuerId);
+        // Delete the hold before reading the loan back, so a failed read cannot leave a fulfilled hold queued.
         cancel();
-        return loan;
+        return Loan.latestForBook(bookId);
     }
 
     /** Returns the oldest hold, or null if there is none. */

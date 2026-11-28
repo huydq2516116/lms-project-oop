@@ -62,6 +62,11 @@ public class Book {
 	}
 
 	public Loan checkOut(int borrowerId, int issuerId) throws SQLException {
+		lend(borrowerId, issuerId);
+		return Loan.latestForBook(bookId);
+	}
+
+	void lend(int borrowerId, int issuerId) throws SQLException {
 		refresh();
 		if (!isAvailable()) {
 			throw new IllegalStateException("Book is unavailable for checkout.");
@@ -79,7 +84,6 @@ public class Book {
 			}
 			throw failure;
 		}
-		return Loan.latestForBook(bookId);
 	}
 
 	public void markReturned() throws SQLException {
@@ -119,7 +123,7 @@ public class Book {
 		isIssued = stored.isIssued;
 	}
 
-	private void saveIssued(boolean issued) throws SQLException {
+	void saveIssued(boolean issued) throws SQLException {
 		DatabaseOperations.updateBook(bookId, title, author, subject, issued);
 		isIssued = issued;
 	}

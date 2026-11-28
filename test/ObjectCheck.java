@@ -15,6 +15,12 @@ class ObjectCheck {
         check(loan.isOverdue(due.plusDays(1)) && loan.calculateFine(due.plusDays(1), 100) == 100, "One late day");
         loan.setDateReturned(Date.valueOf(due.plusDays(2)));
         check(!loan.isOverdue(due.plusDays(9)) && loan.calculateFine(due.plusDays(9), 100) == 200, "Fine stops on return");
+        try {
+            loan.calculateFine(due, -1);
+            check(false, "Negative rate must be rejected");
+        } catch (IllegalArgumentException expected) {
+            // rejected
+        }
         loan.setFinePaid(true);
         check(loan.calculateFine(due.plusDays(9), 100) == 0, "Paid fine is zero");
 

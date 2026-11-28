@@ -99,6 +99,9 @@ public class Loan {
 
     /** The team has not chosen a daily rate yet, so the caller supplies it. */
     public long calculateFine(LocalDate today, long finePerDay) {
+        if (finePerDay < 0) {
+            throw new IllegalArgumentException("Daily fine cannot be negative.");
+        }
         return finePaid ? 0 : getDaysLate(today) * finePerDay;
     }
 
@@ -114,9 +117,18 @@ public class Loan {
         }
         LocalDate today = LocalDate.now();
         java.sql.Date returnDate = java.sql.Date.valueOf(today);
-        // Book first: if the second write fails the loan stays open and the return can simply be retried.
+        // Book first, undone on failure, so an open loan is never left on an available book and the return can be retried.
         book.markReturned();
-        DatabaseOperations.updateLoanReturnDate(loanId, returnDate);
+        try {
+            DatabaseOperations.updateLoanReturnDate(loanId, returnDate);
+        } catch (SQLException failure) {
+            try {
+                book.saveIssued(true);
+            } catch (SQLException undoFailure) {
+                failure.addSuppressed(undoFailure);
+            }
+            throw failure;
+        }
         dateReturned = returnDate;
         // shortcut: receiver_id is kept in memory only; DatabaseOperations has no method that saves it.
         this.receiverId = receiverId;
@@ -140,6 +152,9 @@ public class Loan {
             throw new IllegalStateException("Cannot renew a returned loan.");
         }
         java.sql.Date renewed = java.sql.Date.valueOf(toLocalDate(newDueDate));
+        if (!toLocalDate(renewed).isAfter(toLocalDate(getDueDate()))) {
+            throw new IllegalArgumentException("New due date must be after the current due date.");
+        }
         DatabaseOperations.updateLoanDueDate(loanId, renewed);
         dueDate = renewed;
     }
