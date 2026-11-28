@@ -11,9 +11,10 @@ public class Loan {
     private final int borrowerId;
     private final int issuerId;
     private int receiverId;
+    private final Date dueDate;
 
     public Loan(int loanId, Date issuedDate, Date dateReturned, boolean finePaid, int bookId, int borrowerId,
-            int issuerId, int receiverId) {
+            int issuerId, int receiverId, Date dueDate) {
         this.loanId = loanId;
         this.issuedDate = issuedDate;
         this.dateReturned = dateReturned;
@@ -22,6 +23,7 @@ public class Loan {
         this.borrowerId = borrowerId;
         this.issuerId = issuerId;
         this.receiverId = receiverId;
+        this.dueDate = dueDate;
     }
 
     public int getLoanId() {
@@ -66,5 +68,9 @@ public class Loan {
 
     public void setReceiverId(int receiverId) {
         this.receiverId = receiverId;
+    }
+
+    public Date getDueDate() {
+        return dueDate;
     }
 }
