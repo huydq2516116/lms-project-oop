@@ -28,10 +28,12 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 import lms.database.DatabaseOperations;
 import lms.database.DatabaseOperations.ClerkInfo;
+import lms.database.DatabaseOperations.LibrarianInfo;
 import lms.database.DatabaseOperations.PasswordRole;
 import lms.database.DatabaseOperations.PersonInfo;
 import lms.person.Borrower;
 import lms.person.Clerk;
+import lms.person.Librarian;
 
 /**
  * Màn hình đăng nhập hệ thống LMS (Library Management System).
@@ -225,11 +227,15 @@ public final class LoginScreen extends JFrame {
 							? realPasswordRole.role().toLowerCase()
 							: "";
 					PersonInfo personInfo = (isAuthenticated
-							&& ("borrower".equals(roleLower) || "clerk".equals(roleLower)))
-									? DatabaseOperations.getPersonInfo(username)
-									: null;
+							&& ("borrower".equals(roleLower) || "clerk".equals(roleLower)
+									|| "librarian".equals(roleLower)))
+											? DatabaseOperations.getPersonInfo(username)
+											: null;
 					ClerkInfo clerkInfo = ("clerk".equals(roleLower) && personInfo != null)
 							? DatabaseOperations.getClerkInfo(personInfo.id())
+							: null;
+					LibrarianInfo librarianInfo = ("librarian".equals(roleLower) && personInfo != null)
+							? DatabaseOperations.getLibrarianInfo(personInfo.id())
 							: null;
 
 					SwingUtilities.invokeLater(() -> {
@@ -266,7 +272,14 @@ public final class LoginScreen extends JFrame {
 								new ClerkScreen(clerk);
 							}
 							case "librarian" -> {
-								// Mở LibrarianDashboard
+								double salary = librarianInfo != null ? librarianInfo.salary() : 0.0;
+								int officeNo = librarianInfo != null ? librarianInfo.officeNo() : 1;
+								Librarian librarian = personInfo != null
+										? new Librarian(personInfo.id(), officeNo, personInfo.userName(), password,
+												personInfo.name(), personInfo.address(), personInfo.phoneNo(), salary)
+										: new Librarian(0, officeNo, username, password, username, "", "", salary);
+								dispose();
+								new LibrarianScreen(librarian);
 							}
 							case "admin" -> {
 								// Mở AdminDashboard
@@ -297,7 +310,7 @@ public final class LoginScreen extends JFrame {
 	}
 
 	/**
-	 * Khóa/mở nút và thông báo trạng thái đang tải
+	 * Kóha/mở nút và thông báo trạng thái đang tải
 	 */
 	private void setLoadingState(boolean isLoading) {
 		btnLogin.setEnabled(!isLoading);

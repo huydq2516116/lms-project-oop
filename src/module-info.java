@@ -14,5 +14,6 @@ module LMSProject {
 	exports lms.screen;
 	exports lms.screen.borrower;
 	exports lms.screen.clerk;
+	exports lms.screen.librarian;
 	exports lms.screen.util;
 }

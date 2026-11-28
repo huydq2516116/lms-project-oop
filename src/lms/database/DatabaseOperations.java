@@ -405,6 +405,20 @@ public class DatabaseOperations {
         return null;
     }
 
+    public static LibrarianInfo getLibrarianInfo(int id) throws SQLException {
+        String sql = "SELECT * FROM librarians WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new LibrarianInfo(rs.getDouble(2), rs.getInt(3));
+                }
+            }
+        }
+        return null;
+    }
+
     // Check the person's personal information
     public static PersonInfo getPersonInfo(String username) throws SQLException {
         String sql = "SELECT id, user_name, name, address, phone_no, role FROM persons WHERE user_name = ?";
@@ -632,5 +646,8 @@ public class DatabaseOperations {
     }
 
     public record ClerkInfo(double salary, int deskNo) {
+    }
+
+    public record LibrarianInfo(double salary, int officeNo) {
     }
 }
